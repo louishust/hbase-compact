@@ -1,12 +1,12 @@
 <configuration>
     <property>
         <name>fs.default.name</name>
-        <value>hdfs://l-hbase25.data.cn8.qunar.com:8020</value>
-        <final>true</final>`
+        <value>hdfs://l-hbase25.data.cn8:8020</value>
+        <final>true</final>
     </property>
     <property>
         <name>hbase.rootdir</name>
-        <value>hdfs://l-hbase25.data.cn8.qunar.com:8020/hbase</value>
+        <value>hdfs://l-hbase25.data.cn8:8020/hbase</value>
     </property>
     <property>
         <name>zookeeper.znode.parent</name>
@@ -14,7 +14,7 @@
     </property>
     <property>
         <name>hbase.zookeeper.quorum</name>
-        <value>l-hbase25.data.cn8.qunar.com,l-hbase26.data.cn8.qunar.com,l-hbase27.data.cn8.qunar.com</value>
+        <value>l-hbase25.data.cn8,l-hbase26.data.cn8,l-hbase27.data.cn8</value>
     </property>
     <property>
         <name>hbase.zookeeper.property.clientPort</name>

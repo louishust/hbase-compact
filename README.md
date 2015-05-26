@@ -21,9 +21,11 @@ mvn dependency:copy-dependencies
     * starttime: the time start to do major compaction
     * endtime: the time major compaction stop
     * marjorfilesize: the max file size for region major compaction.
+    * directcompactsize: file below this size will be major compact directly.
+    * regionindex: the start pos where the major compact start.
 2. Modify the hbase-site.xml according to your cluster configuration.
 3. Run the HBase-Compact.
 ```
-java -cp ./dependency/*:./conf/*:./* com.qunar.dba.QHBaseCompact &
+java -cp ./target/dependency/\*:./target/\*:./conf/  com.qunar.dba.QHBaseCompact &
 ```
 
