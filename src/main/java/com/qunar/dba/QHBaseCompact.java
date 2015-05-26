@@ -133,7 +133,6 @@ public class QHBaseCompact {
 
         int i = regionindex;
         getTableDetails();
-        storeNewConfig(100);
         while (true) {
             waitTime();
             try {
