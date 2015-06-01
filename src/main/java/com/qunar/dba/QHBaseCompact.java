@@ -99,13 +99,12 @@ public class QHBaseCompact {
         regionindex = Integer.parseInt(props.getProperty(KEY_REGIONINDEX));
     }
 
-    private static void storeNewConfig(int newRegionIndex)
-    {
+    private static void storeNewConfig(int newRegionIndex) {
         OutputStream fos = null;
         try {
             props.setProperty(KEY_REGIONINDEX, Integer.toString(newRegionIndex));
             fos = new FileOutputStream("conf/config.properties");
-            props.store(fos,"Update regionindex");
+            props.store(fos, "Update regionindex");
             fos.flush();
             fos.close();
         } catch (FileNotFoundException e) {
@@ -140,7 +139,7 @@ public class QHBaseCompact {
                 List<HRegionInfo> regionlist = hadmin.getTableRegions(tablename.getBytes());
                 if (i >= regionlist.size()) {
                     i = 0;
-                    Thread.sleep(10*60*1000);
+                    Thread.sleep(10 * 60 * 1000);
                 }
                 for (HColumnDescriptor col : columndescs) {
                     String familyname = col.getNameAsString();
@@ -152,73 +151,38 @@ public class QHBaseCompact {
                     if (statuslist.length > 1) {
                         long totalfilesize = 0;
                         long max_size = 0;
-                        long pre_max_size = 0;
                         final long filenum = statuslist.length;
                         for (FileStatus status : statuslist) {
                             totalfilesize += status.getLen();
                             if (status.getLen() > max_size) {
-                                pre_max_size = max_size;
                                 max_size = status.getLen();
                                 maxfilename = status.getPath().getName();
                             }
                         }
                         final String finalMaxfilename = maxfilename;
-                        if (totalfilesize > majorcompactsize ) {
-                            logger.error("Table:" + tablename + "\tRegion:" + region.getRegionNameAsString() +
-                                    "\tFamily:" + familyname + "\tCan not do major compact caused by filesize too large :" +
-                                    totalfilesize);
-                        } else {
-                            if (totalfilesize < directcompactsize) {
-                                logger.info("Starting direct major compact region:" + region.getRegionNameAsString() +
-                                        "\tFamily:" + familyname + "\tFilenum:" + statuslist.length +
-                                        "\tTotalSize:" + totalfilesize/1024/1024/1024+"GB");
-                                hadmin.majorCompact(region.getRegionName(), familyname.getBytes());
-                                // wait for 4 hours
-                                long wait_time = totalfilesize/1024/1024/1024 * 40 * 1000;
-                                quickPoll(new Callable<Boolean>() {
-                                    public Boolean call() throws Exception {
-                                        FileStatus[] statuslist = hfs.listStatus(regionfamilypath);
-                                        long local_max_size = 0;
-                                        String local_maxfilename = null;
-                                        for (FileStatus status : statuslist) {
-                                            if (status.getLen() > local_max_size) {
-                                                local_max_size = status.getLen();
-                                                local_maxfilename = status.getPath().getName();
-                                            }
-                                        }
-                                        return local_maxfilename.compareTo(finalMaxfilename) != 0;
-                                    }
-                                },  wait_time);
-                                logger.info("Complete direct major compact region:" + region.getRegionNameAsString());
-                            } else if (pre_max_size/(max_size*1.0) < 0.3 ) {
-                                logger.error("Table:" + tablename + "\tRegion:" + region.getRegionNameAsString() +
-                                        "\tFamily:" + familyname + "\tCan not do major compact caused by file size differ too large:" +
-                                        "Max_size:" + max_size/1024/1024/1024 + "GB, Pre_Max_size:" + pre_max_size/1024/1024/1024 +"GB");
-                            } else {
-                                logger.info("Starting major compact region:" + region.getRegionNameAsString() +
-                                        "\tFamily:" + familyname + "\tFilenum:" + statuslist.length +
-                                        "\tTotalSize:" + totalfilesize/1024/1024/1024+"GB");
-                                hadmin.majorCompact(region.getRegionName(), familyname.getBytes());
 
-                                // wait for hours
-                                long wait_time = totalfilesize/1024/1024/1024 * 40 * 1000;
-                                quickPoll(new Callable<Boolean>() {
-                                    public Boolean call() throws Exception {
-                                        FileStatus[] statuslist = hfs.listStatus(regionfamilypath);
-                                        long local_max_size = 0;
-                                        String local_maxfilename = null;
-                                        for (FileStatus status : statuslist) {
-                                            if (status.getLen() > local_max_size) {
-                                                local_max_size = status.getLen();
-                                                local_maxfilename = status.getPath().getName();
-                                            }
-                                        }
-                                        return local_maxfilename.compareTo(finalMaxfilename) != 0;
+                        logger.info("Starting major compact region:" + region.getRegionNameAsString() +
+                                "\tFamily:" + familyname + "\tFilenum:" + filenum +
+                                "\tTotalSize:" + totalfilesize / 1024 / 1024 / 1024 + "GB");
+                        hadmin.majorCompact(region.getRegionName(), familyname.getBytes());
+
+                        // wait for hours
+                        long wait_time = totalfilesize / 1024 / 1024 / 1024 * 40 * 1000;
+                        quickPoll(new Callable<Boolean>() {
+                            public Boolean call() throws Exception {
+                                FileStatus[] statuslist = hfs.listStatus(regionfamilypath);
+                                long local_max_size = 0;
+                                String local_maxfilename = null;
+                                for (FileStatus status : statuslist) {
+                                    if (status.getLen() > local_max_size) {
+                                        local_max_size = status.getLen();
+                                        local_maxfilename = status.getPath().getName();
                                     }
-                                }, wait_time);
-                                logger.info("Complete major compact region:" + region.getRegionNameAsString());
+                                }
+                                return local_maxfilename.compareTo(finalMaxfilename) != 0;
                             }
-                        }
+                        }, wait_time);
+                        logger.info("Complete major compact region:" + region.getRegionNameAsString());
                     } else {
                         logger.error("Table:" + tablename + "\tRegion:" + region.getRegionNameAsString() +
                                 "\tFamily:" + familyname + "\tCan not do major compact caused by file number" +
@@ -228,7 +192,7 @@ public class QHBaseCompact {
 
                 i++;
                 storeNewConfig(i);
-                Thread.sleep(10*1000);
+                Thread.sleep(1 * 1000);
             } catch (IOException e) {
                 e.printStackTrace();
                 logger.error(e.getMessage());
@@ -285,10 +249,10 @@ public class QHBaseCompact {
                     }
                     logger.info("Table:" + tablename + "\tRegion:" + region.getRegionNameAsString() +
                             "\tFamily:" + familyname + "\tFilenum:" + statuslist.length + "\tSize:" +
-                            totalfilesize/1024/1024/1024 +"GBytes");
+                            totalfilesize / 1024 / 1024 / 1024 + "GBytes");
                 }
             }
-            logger.info("Table:" + tablename + "\tSize: "+ tableSize/1024/1024/1024 + "GBytes");
+            logger.info("Table:" + tablename + "\tSize: " + tableSize / 1024 / 1024 / 1024 + "GBytes");
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(e.getMessage());
